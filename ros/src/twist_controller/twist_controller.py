@@ -58,7 +58,7 @@ class Controller(object):
 
 	if linear_vel == 0. and current_vel < 0.1:
 		throttle = 0
-		brake = 400
+		brake = 700
 
 	elif throttle < 0.1 and vel_error < 0:
 		throttle = 0
