@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+
+#04/06/2018
+
 import rospy
 from std_msgs.msg import Int32
 from geometry_msgs.msg import PoseStamped, Pose
@@ -27,6 +30,9 @@ class TLDetector(object):
         self.camera_image = None
         self.lights = []
 
+	self.waypoints_2D = None
+	self.waypoint_tree = None
+
         sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
 
@@ -53,6 +59,7 @@ class TLDetector(object):
         self.last_state = TrafficLight.UNKNOWN
         self.last_wp = -1
         self.state_count = 0
+	self.classify_count = 0
 
         rospy.spin()
 
@@ -61,6 +68,9 @@ class TLDetector(object):
 
     def waypoints_cb(self, waypoints):
         self.waypoints = waypoints
+	if not self.waypoints_2D:
+		self.waypoints_2D = [[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y] for waypoint in self.waypoints.waypoints]
+		self.waypoint_tree = KDTree(self.waypoints_2D)
 
     def traffic_cb(self, msg):
         self.lights = msg.lights
@@ -75,7 +85,15 @@ class TLDetector(object):
         """
         self.has_image = True
         self.camera_image = msg
-        light_wp, state = self.process_traffic_lights()
+
+	if self.classify_count == 2:
+        	light_wp, state = self.process_traffic_lights()
+		print(light_wp, state)
+		self.classify_count = 0
+	else:
+		light_wp = self.last_wp
+		state = self.last_state
+		self.classify_count += 1
 
         '''
         Publish upcoming red lights at camera frequency.
@@ -107,7 +125,7 @@ class TLDetector(object):
         """
         #TODO implement
 		
-		closest_idx=self.waypoint_tree.query([x,y],1)[1]
+	closest_idx=self.waypoint_tree.query([x,y],1)[1]
         return closest_idx
 
     def get_light_state(self, light):
@@ -127,8 +145,8 @@ class TLDetector(object):
 
         cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
 
-        #Get classification
-         return self.light_classifier.get_classification(cv_image)
+        Get classification
+        return self.light_classifier.get_classification(cv_image)
 
     def process_traffic_lights(self):
         """Finds closest visible traffic light, if one exists, and determines its
@@ -148,7 +166,6 @@ class TLDetector(object):
         if(self.pose):
 		car_position = self.get_closest_waypoint(self.pose.pose.position.x,self.pose.pose.position.y)
 		
-
         #TODO find the closest visible traffic light (if one exists)
 	diff = len(self.waypoints.waypoints)
 	for i, light in enumerate(self.lights):
@@ -162,8 +179,6 @@ class TLDetector(object):
 			closest_light =  light
 			line_wp_idx=temp_wp_idx
 				 
-				
-
 	if closest_light:
 		state = self.get_light_state(closest_light)
 		return line_wp_idx, state
