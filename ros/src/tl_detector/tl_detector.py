@@ -23,19 +23,15 @@ STATE_COUNT_THRESHOLD = 3
 
 class TLDetector(object):
     def __init__(self):
-        rospy.init_node('tl_detector')
-
-        self.pose = None
-        self.waypoints = None
-        self.camera_image = None
-        self.lights = []
-
+		rospy.init_node('tl_detector')
+		self.pose = None
+		self.waypoints = None
+		self.camera_image = None
+		self.lights = []
 		self.waypoints_2D = None
 		self.waypoint_tree = None
-
         sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb) # can be used to determine the vehicle's location.
         sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb) # provides the complete list of waypoints for the course.
-
         ''' 
         /vehicle/traffic_lights provides you with the location of the traffic light in 3D map space and
         helps you acquire an accurate ground truth data source for the traffic light
@@ -43,24 +39,19 @@ class TLDetector(object):
         simulator. When testing on the vehicle, the color state will not be available. You'll need to
         rely on the position of the light and the camera image to predict it.
         '''
-        sub3 = rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb) #provides the (x, y, z) coordinates of all traffic lights.
-        sub6 = rospy.Subscriber('/image_color', Image, self.image_cb) #which provides an image stream from the car's camera. These images are used to determine the color of upcoming traffic lights.
-
-        config_string = rospy.get_param("/traffic_light_config")
-        self.config = yaml.load(config_string)
-
+		sub3 = rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb) #provides the (x, y, z) coordinates of all traffic lights.
+		sub6 = rospy.Subscriber('/image_color', Image, self.image_cb) #which provides an image stream from the car's camera. These images are used to determine the color of upcoming traffic lights.
+		config_string = rospy.get_param("/traffic_light_config")
+		self.config = yaml.load(config_string)
         self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1) # The node should publish the index of the waypoint for nearest upcoming red light's stop line
-
         self.bridge = CvBridge()
         self.light_classifier = TLClassifier()
         self.listener = tf.TransformListener()
-
         self.state = TrafficLight.UNKNOWN
         self.last_state = TrafficLight.UNKNOWN
         self.last_wp = -1
         self.state_count = 0
 		self.classify_count = 0
-
         rospy.spin()
 
     def pose_cb(self, msg):
