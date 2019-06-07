@@ -30,26 +30,26 @@ class TLDetector(object):
         self.camera_image = None
         self.lights = []
 
-	self.waypoints_2D = None
-	self.waypoint_tree = None
+		self.waypoints_2D = None
+		self.waypoint_tree = None
 
-        sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
-        sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+        sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb) # can be used to determine the vehicle's location.
+        sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb) # provides the complete list of waypoints for the course.
 
-        '''
+        ''' 
         /vehicle/traffic_lights provides you with the location of the traffic light in 3D map space and
         helps you acquire an accurate ground truth data source for the traffic light
         classifier by sending the current color state of all traffic lights in the
         simulator. When testing on the vehicle, the color state will not be available. You'll need to
         rely on the position of the light and the camera image to predict it.
         '''
-        sub3 = rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb)
-        sub6 = rospy.Subscriber('/image_color', Image, self.image_cb)
+        sub3 = rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb) #provides the (x, y, z) coordinates of all traffic lights.
+        sub6 = rospy.Subscriber('/image_color', Image, self.image_cb) #which provides an image stream from the car's camera. These images are used to determine the color of upcoming traffic lights.
 
         config_string = rospy.get_param("/traffic_light_config")
         self.config = yaml.load(config_string)
 
-        self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
+        self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1) # The node should publish the index of the waypoint for nearest upcoming red light's stop line
 
         self.bridge = CvBridge()
         self.light_classifier = TLClassifier()
@@ -59,7 +59,7 @@ class TLDetector(object):
         self.last_state = TrafficLight.UNKNOWN
         self.last_wp = -1
         self.state_count = 0
-	self.classify_count = 0
+		self.classify_count = 0
 
         rospy.spin()
 
@@ -68,9 +68,9 @@ class TLDetector(object):
 
     def waypoints_cb(self, waypoints):
         self.waypoints = waypoints
-	if not self.waypoints_2D:
-		self.waypoints_2D = [[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y] for waypoint in self.waypoints.waypoints]
-		self.waypoint_tree = KDTree(self.waypoints_2D)
+		if not self.waypoints_2D:
+			self.waypoints_2D = [[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y] for waypoint in self.waypoints.waypoints]
+			self.waypoint_tree = KDTree(self.waypoints_2D)
 
     def traffic_cb(self, msg):
         self.lights = msg.lights
@@ -86,14 +86,14 @@ class TLDetector(object):
         self.has_image = True
         self.camera_image = msg
 
-	if self.classify_count == 2:
+		if self.classify_count == 2:
         	light_wp, state = self.process_traffic_lights()
-		print(light_wp, state)
-		self.classify_count = 0
-	else:
-		light_wp = self.last_wp
-		state = self.last_state
-		self.classify_count += 1
+			print(light_wp, state)
+			self.classify_count = 0
+		else:
+			light_wp = self.last_wp
+			state = self.last_state
+			self.classify_count += 1
 
         '''
         Publish upcoming red lights at camera frequency.
@@ -125,7 +125,7 @@ class TLDetector(object):
         """
         #TODO implement
 		
-	closest_idx=self.waypoint_tree.query([x,y],1)[1]
+		closest_idx=self.waypoint_tree.query([x,y],1)[1]
         return closest_idx
 
     def get_light_state(self, light):
@@ -138,8 +138,11 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
-	#return light.state
-        if(not self.has_image):
+		# For Testing just the light state
+		return light.state
+        
+		# Rest will not work until the above command is commented out
+		if(not self.has_image):
             self.prev_light_loc = None
             return False
 
@@ -157,33 +160,34 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
-        light = None
+        closest_light = None
         line_wp_idx = None
 		
 
         # List of positions that correspond to the line to stop in front of for a given intersection
         stop_line_positions = self.config['stop_line_positions']
         if(self.pose):
-		car_position = self.get_closest_waypoint(self.pose.pose.position.x,self.pose.pose.position.y)
+			car_wp_idx = self.get_closest_waypoint(self.pose.pose.position.x,self.pose.pose.position.y)
 		
-        #TODO find the closest visible traffic light (if one exists)
-	diff = len(self.waypoints.waypoints)
-	for i, light in enumerate(self.lights):
-		#Get stop line waypoint index
-		line = stop_line_positions[i]
-		temp_wp_idx = self.get_closest_waypoint(line[0],line[1])
-		#Find the closest stop line waypoint index
-		d=temp_wp_idx-car_position
-		if d >= 0 and d < diff:
-			diff = d
-			closest_light =  light
-			line_wp_idx=temp_wp_idx
+			#TODO find the closest visible traffic light (if one exists)
+			diff = len(self.waypoints.waypoints)
+			for i, light in enumerate(self.lights):
+				#Get stop line waypoint index
+				line = stop_line_positions[i]
+				temp_wp_idx = self.get_closest_waypoint(line[0],line[1])
+				#Find the closest stop line waypoint index
+				d=temp_wp_idx-car_wp_idx
+				if d >= 0 and d < diff:
+					diff = d
+					closest_light =  light
+					line_wp_idx=temp_wp_idx
 				 
-	if closest_light:
-		state = self.get_light_state(closest_light)
-		return line_wp_idx, state
-	self.waypoints = None
-	return -1, TrafficLight.UNKNOWN
+		if closest_light:
+			state = self.get_light_state(closest_light)
+			return line_wp_idx, state
+	
+		else:
+			return -1, TrafficLight.UNKNOWN
 
 if __name__ == '__main__':
     try:
