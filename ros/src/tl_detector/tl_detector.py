@@ -128,7 +128,7 @@ class TLDetector(object):
 			int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 		"""
 		# For Testing just the light state
-		return light.state
+		# return light.state
 		# Rest will not work until the above command is commented out
 		if(not self.has_image):
 			self.prev_light_loc = None
