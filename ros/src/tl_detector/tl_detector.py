@@ -90,7 +90,7 @@ class TLDetector(object):
 		Publish upcoming red lights at camera frequency.
 		Each predicted state has to occur `STATE_COUNT_THRESHOLD` number
 		of times till we start using it. Otherwise the previous stable state is
-	i	used.'''
+		used.'''
 		# Ensure that the light state hasn't changed before taking any option
 		if self.state != state:
 			self.state_count = 0
