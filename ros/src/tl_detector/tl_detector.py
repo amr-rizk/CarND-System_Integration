@@ -19,6 +19,9 @@ import csv
 from scipy.spatial import KDTree
 
 STATE_COUNT_THRESHOLD = 3
+#Every nth image should be processed. 
+N_TH_IMAGE = 5
+
 
 class TLDetector(object):
 	def __init__(self):
@@ -72,22 +75,23 @@ class TLDetector(object):
 		self.has_image = True
 		self.camera_image = msg
 		
-		#if self.classify_count == 2:
-		light_wp, state = self.process_traffic_lights()
-		print("light_wp, state :",light_wp, state)
-		#	self.classify_count = 0
-		#else:
-		#	light_wp = self.last_wp
-		#	state = self.last_state
-		#	self.classify_count += 1
+		if self.classify_count == 0:
+			light_wp, state = self.process_traffic_lights()
+			self.classify_count += 1
+			self.last_wp =light_wp
+			self.last_state = state
+		else:
+			light_wp = self.last_wp
+			state = self.last_state
+			self.classify_count += 1
+			if self.classify_count == (N_TH_IMAGE - 1): # so that every nth image is called 
+				self.classify_count = 0
 		'''
 		Publish upcoming red lights at camera frequency.
 		Each predicted state has to occur `STATE_COUNT_THRESHOLD` number
 		of times till we start using it. Otherwise the previous stable state is
-		used.'''
-		#### Error here::: the waypoint is not getting called 
+	i	used.'''
 		# Ensure that the light state hasn't changed before taking any option
-		print("self.state", self.state)
 		if self.state != state:
 			self.state_count = 0
 			self.state = state
@@ -95,7 +99,7 @@ class TLDetector(object):
 			if self.state_count >= STATE_COUNT_THRESHOLD:
 				print("The state before red light is checked :",state)
 				self.last_state = self.state
-				if state !=TrafficLight.RED:
+				if state != TrafficLight.RED:
 					light_wp= -1
 				self.last_wp = light_wp
 				print("The waypoint (light_wp) published is ",light_wp)
