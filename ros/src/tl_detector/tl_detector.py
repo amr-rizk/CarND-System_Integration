@@ -87,21 +87,21 @@ class TLDetector(object):
 		used.'''
 		#### Error here::: the waypoint is not getting called 
 		# Ensure that the light state hasn't changed before taking any option
-		print("self.state", self.state)
+		#print("self.state", self.state)
 		if self.state != state:
 			self.state_count = 0
 			self.state = state
 		else:
 			if self.state_count >= STATE_COUNT_THRESHOLD:
-				print("The state before red light is checked :",state)
+				#print("The state before red light is checked :",state)
 				self.last_state = self.state
 				if state !=TrafficLight.RED:
 					light_wp= -1
 				self.last_wp = light_wp
-				print("The waypoint (light_wp) published is ",light_wp)
+				#print("The waypoint (light_wp) published is ",light_wp)
 				self.upcoming_red_light_pub.publish(Int32(light_wp))
 			else:
-				print("The waypoint (last_wp) published is ",self.last_wp)
+				#print("The waypoint (last_wp) published is ",self.last_wp)
 				self.upcoming_red_light_pub.publish(Int32(self.last_wp))
 		self.state_count += 1
 
