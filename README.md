@@ -8,7 +8,7 @@ Amr Rizk            x@y   (**team lead**)
 
 Roland Schirmer     Roland_Udacity@T-Online.de
 
-Nobuyuki Tomatsu    x@y
+Nobuyuki Tomatsu    tomatsu999@gmail.com
 
 
 
