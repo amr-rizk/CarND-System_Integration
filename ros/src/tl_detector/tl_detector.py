@@ -19,6 +19,7 @@ import csv
 from scipy.spatial import KDTree
 
 STATE_COUNT_THRESHOLD = 3
+N_TH_IMAGE = 5
 
 class TLDetector(object):
 	def __init__(self):
@@ -71,15 +72,20 @@ class TLDetector(object):
 		"""
 		self.has_image = True
 		self.camera_image = msg
-		
-		#if self.classify_count == 2:
-		light_wp, state = self.process_traffic_lights()
+
+		if self.classify_count == 0:
+			light_wp, state = self.process_traffic_lights()
+			self.classify_count += 1
+			self.last_wp = light_wp
+			self.last_state = state
+		else:
+			light_wp = self.last_wp
+			state = self.last_state
+			self.classify_count += 1
+			if self.classify_count == (N_TH_IMAGE - 1):
+				self.classify_count = 0
+
 		print("light_wp, state :",light_wp, state)
-		#	self.classify_count = 0
-		#else:
-		#	light_wp = self.last_wp
-		#	state = self.last_state
-		#	self.classify_count += 1
 		'''
 		Publish upcoming red lights at camera frequency.
 		Each predicted state has to occur `STATE_COUNT_THRESHOLD` number
