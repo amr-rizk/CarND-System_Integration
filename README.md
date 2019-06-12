@@ -1,4 +1,4 @@
-### Self-Driving Car Nanodegree Team Project
+### Self-Driving Car Nanodegree Capstone Team
 
 | **Name:**      | **Email:**                       |
 |----------------|----------------------------------|
