@@ -47,8 +47,8 @@ class WaypointUpdater(object):	# define class
 		rate = rospy.Rate(50)
 		while not rospy.is_shutdown():	# while running
 			if self.__current_pose and self.__waypoints_tree:	# don't calculate if empty'
-			idx = self.get_nearest_waypoint_id(self.__current_pose)
-			self.update_waypoints(idx)
+				idx = self.get_nearest_waypoint_id(self.__current_pose)
+				self.update_waypoints(idx)
 			rate.sleep()    
 
 	def pose_cb(self, pose):	# current position
