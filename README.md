@@ -4,7 +4,7 @@
 
 Gaurav Garg         gaurav.garg@gmx.de
 
-Amr Rizk            x@y   (**team lead**)
+Amr Rizk            amr_aref@live.com   (**team lead**)
 
 Roland Schirmer     Roland_Udacity@T-Online.de
 
