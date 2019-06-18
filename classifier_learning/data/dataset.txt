@@ -1,2 +1,0 @@
-I removed dataset because the file size is too big.
-Dataset include Alex Lechner's dataset. (https://github.com/alex-lechner/Traffic-Light-Classification)

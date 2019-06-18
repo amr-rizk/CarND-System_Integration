@@ -19,7 +19,7 @@ import csv
 from scipy.spatial import KDTree
 
 STATE_COUNT_THRESHOLD = 3
-N_TH_IMAGE = 5
+N_TH_IMAGE = 6
 
 class TLDetector(object):
 	def __init__(self):
@@ -72,7 +72,8 @@ class TLDetector(object):
 		"""
 		self.has_image = True
 		self.camera_image = msg
-
+		
+		
 		if self.classify_count == 0:
 			light_wp, state = self.process_traffic_lights()
 			self.classify_count += 1
@@ -84,7 +85,8 @@ class TLDetector(object):
 			self.classify_count += 1
 			if self.classify_count == (N_TH_IMAGE - 1):
 				self.classify_count = 0
-
+		
+		#light_wp, state = self.process_traffic_lights()
 		print("light_wp, state :",light_wp, state)
 		'''
 		Publish upcoming red lights at camera frequency.
@@ -139,6 +141,7 @@ class TLDetector(object):
 		cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
 		#Get classification
 		return self.light_classifier.get_classification(cv_image)
+		#return self.light_classifier.get_classification(self.camera_image)
 
 	def process_traffic_lights(self):
 		"""Finds closest visible traffic light, if one exists, and determines its
@@ -165,6 +168,7 @@ class TLDetector(object):
 					diff = d
 					closest_light =  light
 					line_wp_idx=temp_wp_idx
+
 		if closest_light:
 			state = self.get_light_state(closest_light)
 			return line_wp_idx, state
