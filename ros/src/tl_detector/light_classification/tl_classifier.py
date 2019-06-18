@@ -22,9 +22,10 @@ class TLClassifier(object):
 
 	CLASSIFIER_BASE = os.path.dirname(os.path.realpath(__file__))
 	if self.is_real:
-		GRAPH = 'inference_graph_real.pb'
+		GRAPH = 'frozen_inference_graph_real.pb'
 	else:
-		GRAPH = 'frozen_inference_graph.pb'
+		#GRAPH = 'frozen_inference_graph.pb'
+		GRAPH = 'optimized_inference_graph_sim.pb'
 	self.PATH_TO_GRAPH = CLASSIFIER_BASE + '/' + GRAPH
 	self.PATH_TO_LABELS = r'udacity_label_map.pbtxt'
 	self.NUM_CLASSES = 13
@@ -45,8 +46,7 @@ class TLClassifier(object):
     def load_image_into_numpy_array(self, image):
 	im_height = np.size(image, 0)
 	im_width = np.size(image, 1)
-	return np.array(image).reshape((im_height, im_width, 3)).astype(np.uint8)
-	#return np.array(image).astype(np.uint8)       
+	return np.array(image).reshape((im_height, im_width, 3)).astype(np.uint8)       
 
     def get_classification(self, image):
         """Determines the color of the traffic light in the image
@@ -72,14 +72,15 @@ class TLClassifier(object):
 
 			(boxes, scores, classes, num) = sess.run([detect_boxes, detect_scores, detect_classes, num_detections], feed_dict={image_tensor: image_expanded})
 			"""
-			if classes[0][0] == 1:
-				self.tl_state_pred = 2
-			elif classes[0][0] == 4:
-				self.tl_state_pred = 2
-			elif classes[0][0] == 2:
-				self.tl_state_pred = 0
-			elif classes[0][0] == 3:
-				self.tl_state_pred = 1
+			if scores[0][0] > 0.05:			
+				if classes[0][0] == 1 or classes[0][0] == 4:
+					self.tl_state_pred = TrafficLight.GREEN
+				elif classes[0][0] == 2:
+					self.tl_state_pred = TrafficLight.RED
+				elif classes[0][0] == 3:
+					self.tl_state_pred = TrafficLight.YELLOW
+			else:
+				self.tl_state_pred = TrafficLight.UNKNOWN
 			"""
 			if classes[0][0] == 1 or classes[0][0] == 4:
 				self.tl_state_pred = TrafficLight.GREEN
@@ -87,4 +88,5 @@ class TLClassifier(object):
 				self.tl_state_pred = TrafficLight.RED
 			elif classes[0][0] == 3:
 				self.tl_state_pred = TrafficLight.YELLOW
+			
         return self.tl_state_pred
